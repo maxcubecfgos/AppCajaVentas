@@ -1,5 +1,5 @@
 name: flutter_application_1
-description: "Money Counter - Professional Fintech App"
+description: "MicroPOS - Aplicación de Gestión de Ventas y Punto de Venta Offline-First"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -9,14 +9,16 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: ^2.6.1
-  shared_preferences: ^2.3.4
-  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^2.4.9
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  intl: ^0.18.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
