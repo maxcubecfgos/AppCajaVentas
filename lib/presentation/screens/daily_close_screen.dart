@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/currency_formatter.dart';
+import '../../core/utils/daily_report_helper.dart';
+import '../../core/utils/qr_report_helper.dart';
+import '../../domain/models/daily_summary.dart';
 import '../../providers/daily_summary_providers.dart';
 
 class DailyCloseScreen extends ConsumerStatefulWidget {
@@ -16,7 +20,8 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
+    final now = DateTime.now();
+    _selectedDate = DateTime(now.year, now.month, now.day);
   }
 
   @override
@@ -32,6 +37,63 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: _pickDate,
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code),
+            tooltip: 'Generar QR',
+            onPressed: () async {
+              final summaryAsync = ref.read(
+                dailySummaryProvider(_selectedDate),
+              );
+              final summary = summaryAsync.value;
+              if (summary == null) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('No hay datos para generar QR'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+                return;
+              }
+              if (context.mounted) {
+                _showQrDialog(context, summary);
+              }
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            tooltip: 'Exportar cuadre',
+            onPressed: () async {
+              final summaryAsync = ref.read(
+                dailySummaryProvider(_selectedDate),
+              );
+              final summary = summaryAsync.value;
+              if (summary == null) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('No hay datos para exportar'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+                return;
+              }
+              try {
+                await DailyReportHelper.shareDailyReport(summary);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al exportar: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
           ),
         ],
       ),
@@ -81,7 +143,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                     Expanded(
                       child: _SummaryCard(
                         title: 'Ingresos Totales',
-                        value: '\$${summary.totalIncome.toStringAsFixed(2)}',
+                        value: CurrencyFormatter.format(summary.totalIncome),
                         icon: Icons.attach_money,
                         color: Colors.green,
                       ),
@@ -138,7 +200,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                         title: Text(item.productName),
                         subtitle: Text('${item.quantitySold} vendido(s)'),
                         trailing: Text(
-                          '\$${item.subtotal.toStringAsFixed(2)}',
+                          CurrencyFormatter.format(item.subtotal),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -157,6 +219,42 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
     );
   }
 
+  void _showQrDialog(BuildContext context, DailySummary summary) {
+    final qrData = QrReportHelper.serializeSummary(summary);
+    final qrImage = QrReportHelper.buildQr(qrData);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Código QR del Cuadre'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            qrImage,
+            const SizedBox(height: 16),
+            Text(
+              DateFormat('dd/MM/yyyy').format(summary.date),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Total: ${CurrencyFormatter.format(summary.totalIncome)}',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _pickDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
@@ -166,7 +264,9 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
       lastDate: now,
     );
     if (picked != null) {
-      setState(() => _selectedDate = picked);
+      setState(
+        () => _selectedDate = DateTime(picked.year, picked.month, picked.day),
+      );
     }
   }
 }

@@ -42,7 +42,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -93,7 +93,29 @@ class AppDatabase {
     );
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Índice único case-insensitive y sin espacios extra para evitar
+      // duplicados de nombre de producto a nivel de base de datos.
+      await db.execute('''
+        CREATE UNIQUE INDEX idx_products_name_unique
+        ON products (LOWER(TRIM(name)))
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Tabla para almacenar cuadres diarios recibidos vía QR
+      await db.execute('''
+        CREATE TABLE received_reports (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          report_date TEXT NOT NULL,
+          total_income REAL NOT NULL,
+          transaction_count INTEGER NOT NULL,
+          breakdown_json TEXT NOT NULL,
+          received_at TEXT NOT NULL
+        )
+      ''');
+    }
+  }
 
   Future<void> close() async {
     final db = await database;

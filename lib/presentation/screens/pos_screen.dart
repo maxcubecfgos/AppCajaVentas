@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/transaction.dart';
 import '../../providers/product_providers.dart';
@@ -154,7 +155,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Confirmar Venta'),
         content: Text(
-          'Total: \$${cartNotifier.totalAmount.toStringAsFixed(2)}\n'
+          'Total: ${CurrencyFormatter.format(cartNotifier.totalAmount)}\n'
           'Productos: ${cartNotifier.totalItems}',
         ),
         actions: [
@@ -213,12 +214,26 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         );
       }
     } catch (e) {
+      debugPrint('Error en checkout: $e');
       if (context.mounted) {
+        final message = _getFriendlyErrorMessage(e);
         messenger.showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
       }
     }
+  }
+
+  String _getFriendlyErrorMessage(dynamic error) {
+    final message = error.toString().toLowerCase();
+    if (message.contains('database is locked') ||
+        message.contains('database_is_locked')) {
+      return 'La base de datos está ocupada. Intenta nuevamente.';
+    }
+    if (message.contains('constraint') || message.contains('unique')) {
+      return 'No se pudo guardar la venta por una restricción de datos.';
+    }
+    return 'Ocurrió un error inesperado. Intenta nuevamente.';
   }
 }
 
@@ -260,7 +275,7 @@ class _ProductCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '\$${product.price.toStringAsFixed(2)}',
+                CurrencyFormatter.format(product.price),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.primary,
                   fontWeight: FontWeight.bold,
@@ -320,7 +335,7 @@ class _CartSummaryBar extends StatelessWidget {
                       style: theme.textTheme.bodySmall,
                     ),
                     Text(
-                      '\$${totalAmount.toStringAsFixed(2)}',
+                      CurrencyFormatter.format(totalAmount),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -400,10 +415,10 @@ class _CartSheet extends ConsumerWidget {
                       ),
                       title: Text(item.product.name),
                       subtitle: Text(
-                        '\$${item.product.price.toStringAsFixed(2)} c/u',
+                        '${CurrencyFormatter.format(item.product.price)} c/u',
                       ),
                       trailing: Text(
-                        '\$${item.subtotal.toStringAsFixed(2)}',
+                        CurrencyFormatter.format(item.subtotal),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     );

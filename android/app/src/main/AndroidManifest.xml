@@ -42,4 +42,7 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+
+    <!-- Permiso de cámara para escanear códigos QR -->
+    <uses-permission android:name="android.permission.CAMERA" />
 </manifest>

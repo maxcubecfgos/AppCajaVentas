@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class MoneyCounterScreen extends StatefulWidget {
   const MoneyCounterScreen({super.key});
@@ -94,7 +95,7 @@ class _MoneyCounterScreenState extends State<MoneyCounterScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '\$${_total.toStringAsFixed(2)}',
+                  CurrencyFormatter.format(_total),
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: theme.colorScheme.onPrimaryContainer,
@@ -151,7 +152,13 @@ class _MoneyCounterScreenState extends State<MoneyCounterScreen> {
                       SizedBox(
                         width: 80,
                         child: Text(
-                          '\$${(d.value * (int.tryParse(_controllers[d.value]?.text ?? '0') ?? 0)).toStringAsFixed(2)}',
+                          CurrencyFormatter.format(
+                            d.value *
+                                (int.tryParse(
+                                      _controllers[d.value]?.text ?? '0',
+                                    ) ??
+                                    0),
+                          ),
                           textAlign: TextAlign.right,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.bold,

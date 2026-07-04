@@ -3,6 +3,7 @@ import '../../core/database/app_database.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/transaction.dart';
 import '../../domain/models/daily_summary.dart';
+import '../../domain/models/received_report.dart';
 
 class PosDatabaseDatasource {
   final AppDatabase _appDatabase;
@@ -22,6 +23,18 @@ class PosDatabaseDatasource {
   Future<Product?> getProductById(int id) async {
     final db = await database;
     final maps = await db.query('products', where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) return null;
+    return Product.fromMap(maps.first);
+  }
+
+  Future<Product?> getProductByName(String name) async {
+    final db = await database;
+    final normalized = name.trim().toLowerCase();
+    final maps = await db.query(
+      'products',
+      where: 'LOWER(TRIM(name)) = ?',
+      whereArgs: [normalized],
+    );
     if (maps.isEmpty) return null;
     return Product.fromMap(maps.first);
   }
@@ -99,6 +112,20 @@ class PosDatabaseDatasource {
   }
 
   // ─── Reports ────────────────────────────────────────────────────
+
+  Future<int> insertReceivedReport(ReceivedReport report) async {
+    final db = await database;
+    return db.insert('received_reports', report.toMap());
+  }
+
+  Future<List<ReceivedReport>> getAllReceivedReports() async {
+    final db = await database;
+    final maps = await db.query(
+      'received_reports',
+      orderBy: 'received_at DESC',
+    );
+    return maps.map((m) => ReceivedReport.fromMap(m)).toList();
+  }
 
   Future<DailySummary?> getDailySummary(DateTime date) async {
     final db = await database;

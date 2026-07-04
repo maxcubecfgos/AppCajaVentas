@@ -34,6 +34,7 @@ migrate_working_dir/
 /coverage/
 .claude/
 .continue/
+prompts/
 
 # Symbolication related
 app.*.symbols
