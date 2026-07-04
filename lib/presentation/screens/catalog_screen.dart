@@ -96,6 +96,16 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     );
   }
 
+  // Cierra el teclado y espera a que la animación de cierre termine
+  // antes de continuar. Esto evita el ANR (congelamiento) que ocurre
+  // en algunos dispositivos Android (ej. Motorola) cuando se hace
+  // Navigator.pop() con un TextFormField todavía enfocado y el
+  // teclado abierto.
+  Future<void> _closeKeyboardSafely() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    await Future.delayed(const Duration(milliseconds: 150));
+  }
+
   Future<void> _showProductForm(
     BuildContext context, {
     Product? product,
@@ -149,28 +159,65 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () async {
+              // Cerrar teclado ANTES de cerrar el diálogo
+              await _closeKeyboardSafely();
+              if (ctx.mounted) Navigator.pop(ctx, false);
+            },
             child: const Text('Cancelar'),
           ),
           FilledButton(
             onPressed: () async {
               final currentState = formKey.currentState;
               if (currentState == null || !currentState.validate()) return;
+
               final datasource = ref.read(posDataSourceProvider);
               final name = nameController.text.trim();
-              final price = double.parse(priceController.text.trim());
-
-              if (isEditing) {
-                await datasource.updateProduct(
-                  editingProduct!.copyWith(name: name, price: price),
-                );
-              } else {
-                await datasource.insertProduct(
-                  Product(name: name, price: price),
-                );
+              final priceText = priceController.text.trim();
+              final price = double.tryParse(priceText);
+              if (price == null || price < 0) {
+                if (ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    const SnackBar(
+                      content: Text('Precio inválido'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+                return;
               }
-              ref.invalidate(productListProvider);
-              if (ctx.mounted) Navigator.pop(ctx, true);
+
+              // Cerrar teclado ANTES de tocar la base de datos o cerrar
+              // el diálogo. Esto evita el ANR observado en dispositivos
+              // como Motorola cuando el campo de texto sigue enfocado.
+              await _closeKeyboardSafely();
+
+              try {
+                if (isEditing) {
+                  await datasource.updateProduct(
+                    editingProduct!.copyWith(name: name, price: price),
+                  );
+                } else {
+                  await datasource.insertProduct(
+                    Product(name: name, price: price),
+                  );
+                }
+                // Cerrar el diálogo ANTES de invalidar para evitar
+                // reconstrucción del widget mientras el diálogo está abierto
+                if (ctx.mounted) Navigator.pop(ctx, true);
+                ref.invalidate(productListProvider);
+              } catch (e) {
+                // Si hay error, cerrar el diálogo igual y mostrar el error
+                if (ctx.mounted) {
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error al guardar: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             child: Text(isEditing ? 'Guardar' : 'Crear'),
           ),

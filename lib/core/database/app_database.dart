@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -5,15 +6,34 @@ import 'package:path_provider/path_provider.dart';
 class AppDatabase {
   static final AppDatabase _instance = AppDatabase._internal();
   static Database? _database;
+  static Completer<Database>? _initCompleter;
 
   AppDatabase._internal();
 
   factory AppDatabase() => _instance;
 
   Future<Database> get database async {
+    // Si ya está abierta, devolverla directamente
     if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+
+    // Si ya hay una apertura en curso, esperar a que termine
+    // en lugar de disparar otra llamada a openDatabase()
+    if (_initCompleter != null) {
+      return _initCompleter!.future;
+    }
+
+    _initCompleter = Completer<Database>();
+
+    try {
+      final db = await _initDatabase();
+      _database = db;
+      _initCompleter!.complete(db);
+      return db;
+    } catch (e, st) {
+      _initCompleter!.completeError(e, st);
+      _initCompleter = null;
+      rethrow;
+    }
   }
 
   Future<Database> _initDatabase() async {
@@ -79,5 +99,6 @@ class AppDatabase {
     final db = await database;
     await db.close();
     _database = null;
+    _initCompleter = null;
   }
 }
