@@ -5,12 +5,10 @@ plugins {
 }
 
 android {
-    buildFeatures {
-        buildConfig = true
-        androidResources = true
-    }
-    packagingOptions {
-        resources.excludes.add("META-INF/*")
+    packaging {
+        resources {
+            excludes += "META-INF/*"
+        }
     }
     namespace = "com.example.flutter_application_1"
     compileSdk = flutter.compileSdkVersion
