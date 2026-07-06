@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/screens/pos_screen.dart';
 import 'presentation/screens/catalog_screen.dart';
 import 'presentation/screens/daily_close_screen.dart';
 import 'presentation/screens/money_counter_screen.dart';
-import 'presentation/screens/receive_report_screen.dart';
-
-final themeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.light);
+import 'providers/theme_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +25,13 @@ class MicroPOSApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
+      locale: const Locale('es', 'ES'),
       home: const HomeScreen(),
     );
   }
@@ -55,39 +61,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('MicroPOS'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
-            tooltip: 'Recibir Cuadre',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ReceiveReportScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            tooltip: 'Cambiar tema',
-            onPressed: () {
-              final current = Theme.of(context).brightness;
-              final newMode = current == Brightness.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state = newMode;
-            },
-          ),
-        ],
-      ),
+      // No appBar aquí — cada screen maneja su propio AppBar dentro del Scaffold.
+      // Esto evita Scaffolds anidados y permite que cada pantalla tenga sus propias
+      // acciones en el AppBar sin conflictos.
       body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,

@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../providers/theme_provider.dart';
 
-class MoneyCounterScreen extends StatefulWidget {
+class MoneyCounterScreen extends ConsumerStatefulWidget {
   const MoneyCounterScreen({super.key});
 
   @override
-  State<MoneyCounterScreen> createState() => _MoneyCounterScreenState();
+  ConsumerState<MoneyCounterScreen> createState() => _MoneyCounterScreenState();
 }
 
-class _MoneyCounterScreenState extends State<MoneyCounterScreen> {
+class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
   final Map<double, TextEditingController> _controllers = {};
   double _total = 0;
 
   static const List<_Denomination> _denominations = [
+    _Denomination(value: 5000, label: '\$5,000'),
+    _Denomination(value: 2000, label: '\$2,000'),
     _Denomination(value: 1000, label: '\$1,000'),
     _Denomination(value: 500, label: '\$500'),
     _Denomination(value: 200, label: '\$200'),
@@ -22,11 +26,8 @@ class _MoneyCounterScreenState extends State<MoneyCounterScreen> {
     _Denomination(value: 20, label: '\$20'),
     _Denomination(value: 10, label: '\$10'),
     _Denomination(value: 5, label: '\$5'),
+    _Denomination(value: 3, label: '\$3'),
     _Denomination(value: 1, label: '\$1'),
-    _Denomination(value: 0.25, label: '¢25'),
-    _Denomination(value: 0.10, label: '¢10'),
-    _Denomination(value: 0.05, label: '¢5'),
-    _Denomination(value: 0.01, label: '¢1'),
   ];
 
   @override
@@ -75,6 +76,21 @@ class _MoneyCounterScreenState extends State<MoneyCounterScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _clearAll,
             tooltip: 'Limpiar',
+          ),
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            tooltip: 'Cambiar tema',
+            onPressed: () {
+              final current = Theme.of(context).brightness;
+              final newMode = current == Brightness.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = newMode;
+            },
           ),
         ],
       ),

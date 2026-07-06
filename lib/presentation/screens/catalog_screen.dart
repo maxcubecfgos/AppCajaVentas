@@ -5,6 +5,7 @@ import '../../core/utils/backup_helper.dart';
 import '../../domain/models/product.dart';
 import '../../providers/product_providers.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   const CatalogScreen({super.key});
@@ -37,6 +38,21 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             icon: const Icon(Icons.upload_file),
             tooltip: 'Respaldo',
             onPressed: () => _showBackupOptions(context),
+          ),
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            tooltip: 'Cambiar tema',
+            onPressed: () {
+              final current = Theme.of(context).brightness;
+              final newMode = current == Brightness.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = newMode;
+            },
           ),
         ],
       ),

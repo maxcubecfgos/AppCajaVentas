@@ -6,6 +6,8 @@ import '../../core/utils/daily_report_helper.dart';
 import '../../core/utils/qr_report_helper.dart';
 import '../../domain/models/daily_summary.dart';
 import '../../providers/daily_summary_providers.dart';
+import '../../providers/theme_provider.dart';
+import 'receive_report_screen.dart';
 
 class DailyCloseScreen extends ConsumerStatefulWidget {
   const DailyCloseScreen({super.key});
@@ -37,6 +39,18 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
           IconButton(
             icon: const Icon(Icons.calendar_today),
             onPressed: _pickDate,
+          ),
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Recibir Cuadre',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ReceiveReportScreen(),
+                ),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.qr_code),
@@ -95,6 +109,21 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
               }
             },
           ),
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            tooltip: 'Cambiar tema',
+            onPressed: () {
+              final current = Theme.of(context).brightness;
+              final newMode = current == Brightness.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = newMode;
+            },
+          ),
         ],
       ),
       body: summaryAsync.when(
@@ -130,6 +159,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                 Text(
                   DateFormat(
                     'EEEE, dd \'de\' MMMM \'del\' yyyy',
+                    'es',
                   ).format(summary.date).toUpperCase(),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,

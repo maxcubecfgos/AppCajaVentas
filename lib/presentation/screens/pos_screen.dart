@@ -7,6 +7,7 @@ import '../../domain/models/transaction.dart';
 import '../../providers/product_providers.dart';
 import '../../providers/transaction_providers.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class PosScreen extends ConsumerStatefulWidget {
   const PosScreen({super.key});
@@ -29,13 +30,31 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         centerTitle: true,
         actions: [
           if (cart.isNotEmpty)
-            Badge(
-              label: Text('${cartNotifier.totalItems}'),
-              child: IconButton(
-                icon: const Icon(Icons.shopping_cart),
-                onPressed: () => _showCartSheet(context, cartNotifier),
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Badge(
+                label: Text('${cartNotifier.totalItems}'),
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_cart),
+                  onPressed: () => _showCartSheet(context, cartNotifier),
+                ),
               ),
             ),
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            tooltip: 'Cambiar tema',
+            onPressed: () {
+              final current = Theme.of(context).brightness;
+              final newMode = current == Brightness.dark
+                  ? ThemeMode.light
+                  : ThemeMode.dark;
+              ref.read(themeModeProvider.notifier).state = newMode;
+            },
+          ),
         ],
       ),
       body: Column(
@@ -417,9 +436,25 @@ class _CartSheet extends ConsumerWidget {
                       subtitle: Text(
                         '${CurrencyFormatter.format(item.product.price)} c/u',
                       ),
-                      trailing: Text(
-                        CurrencyFormatter.format(item.subtotal),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            CurrencyFormatter.format(item.subtotal),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.remove_circle_outline,
+                              color: Colors.red,
+                            ),
+                            tooltip: 'Eliminar producto',
+                            onPressed: () {
+                              cartNotifier.removeProduct(item.product);
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },
