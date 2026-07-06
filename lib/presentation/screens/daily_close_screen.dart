@@ -17,18 +17,10 @@ class DailyCloseScreen extends ConsumerStatefulWidget {
 }
 
 class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
-  late DateTime _selectedDate;
-
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _selectedDate = DateTime(now.year, now.month, now.day);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final summaryAsync = ref.watch(dailySummaryProvider(_selectedDate));
+    final selectedDate = ref.watch(selectedDateProvider);
+    final summaryAsync = ref.watch(dailySummaryProvider(selectedDate));
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -56,9 +48,8 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
             icon: const Icon(Icons.qr_code),
             tooltip: 'Generar QR',
             onPressed: () async {
-              final summaryAsync = ref.read(
-                dailySummaryProvider(_selectedDate),
-              );
+              final selectedDate = ref.read(selectedDateProvider);
+              final summaryAsync = ref.read(dailySummaryProvider(selectedDate));
               final summary = summaryAsync.value;
               if (summary == null) {
                 if (context.mounted) {
@@ -80,9 +71,8 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
             icon: const Icon(Icons.picture_as_pdf),
             tooltip: 'Exportar cuadre',
             onPressed: () async {
-              final summaryAsync = ref.read(
-                dailySummaryProvider(_selectedDate),
-              );
+              final selectedDate = ref.read(selectedDateProvider);
+              final summaryAsync = ref.read(dailySummaryProvider(selectedDate));
               final summary = summaryAsync.value;
               if (summary == null) {
                 if (context.mounted) {
@@ -140,7 +130,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Sin ventas para ${DateFormat('dd/MM/yyyy').format(_selectedDate)}',
+                    'Sin ventas para ${DateFormat('dd/MM/yyyy').format(selectedDate)}',
                     style: theme.textTheme.titleMedium,
                   ),
                 ],
@@ -150,7 +140,8 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
 
           return RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(dailySummaryProvider(_selectedDate));
+              final selectedDate = ref.read(selectedDateProvider);
+              ref.invalidate(dailySummaryProvider(selectedDate));
             },
             child: ListView(
               padding: const EdgeInsets.all(16),
@@ -301,15 +292,16 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
+    final currentDate = ref.read(selectedDateProvider);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: currentDate,
       firstDate: now.subtract(const Duration(days: 365)),
       lastDate: now,
     );
     if (picked != null) {
       final newDate = DateTime(picked.year, picked.month, picked.day);
-      setState(() => _selectedDate = newDate);
+      ref.read(selectedDateProvider.notifier).state = newDate;
       ref.invalidate(dailySummaryProvider(newDate));
     }
   }

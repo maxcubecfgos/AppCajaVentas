@@ -223,7 +223,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       );
       cartNotifier.clear();
       ref.invalidate(productListProvider);
-      ref.invalidate(dailySummaryProvider(DateTime.now()));
+      final today = ref.read(selectedDateProvider);
+      ref.invalidate(dailySummaryProvider(today));
 
       if (context.mounted) {
         HapticFeedback.heavyImpact();
