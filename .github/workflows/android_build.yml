@@ -1,0 +1,46 @@
+name: Compilar App de Android
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Descargar código del repositorio
+      uses: actions/checkout@v4
+
+    - name: Configurar Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu' 
+        java-version: '17'
+
+    - name: Configurar Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable' 
+
+    - name: Instalar dependencias
+      run: flutter pub get
+
+    - name: Ejecutar Tests
+      run: flutter test
+
+    - name: Compilar Android App Bundle (.aab)
+      run: flutter build appbundle --release --no-pub
+
+    - name: Compilar APK (.apk)
+      run: flutter build apk --release --no-pub
+
+    - name: Guardar artefactos generados
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-files
+        path: |
+          build/app/outputs/bundle/release/app-release.aab
+          build/app/outputs/flutter-apk/app-release.apk

@@ -20,7 +20,7 @@ class MicroPOSApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     return MaterialApp(
-      title: 'MicroPOS',
+      title: 'CajaRápida',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -60,34 +60,38 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // No appBar aquí — cada screen maneja su propio AppBar dentro del Scaffold.
-      // Esto evita Scaffolds anidados y permite que cada pantalla tenga sus propias
-      // acciones en el AppBar sin conflictos.
-      body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        destinations: const [
-          NavigationDestination(
-            selectedIcon: Icon(Icons.point_of_sale),
-            icon: Icon(Icons.point_of_sale_outlined),
-            label: 'Ventas',
+    return PopScope(
+      canPop: false,
+      child: Column(
+        children: [
+          Expanded(
+            child: IndexedStack(index: _selectedIndex, children: _screens),
           ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.inventory_2),
-            icon: Icon(Icons.inventory_2_outlined),
-            label: 'Productos',
-          ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.receipt_long),
-            icon: Icon(Icons.receipt_long_outlined),
-            label: 'Cuadre',
-          ),
-          NavigationDestination(
-            selectedIcon: Icon(Icons.account_balance_wallet),
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            label: 'Contador',
+          NavigationBar(
+            selectedIndex: _selectedIndex,
+            onDestinationSelected: _onItemTapped,
+            destinations: const [
+              NavigationDestination(
+                selectedIcon: Icon(Icons.point_of_sale),
+                icon: Icon(Icons.point_of_sale_outlined),
+                label: 'Ventas',
+              ),
+              NavigationDestination(
+                selectedIcon: Icon(Icons.inventory_2),
+                icon: Icon(Icons.inventory_2_outlined),
+                label: 'Productos',
+              ),
+              NavigationDestination(
+                selectedIcon: Icon(Icons.receipt_long),
+                icon: Icon(Icons.receipt_long_outlined),
+                label: 'Cuadre',
+              ),
+              NavigationDestination(
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                label: 'Contador',
+              ),
+            ],
           ),
         ],
       ),

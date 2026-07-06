@@ -31,7 +31,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Catálogo de Productos'),
+        title: const Text('Productos'),
         centerTitle: true,
         actions: [
           IconButton(

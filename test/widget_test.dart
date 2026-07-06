@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_application_1/main.dart';
+import 'package:cajarapida/main.dart';
 
 void main() {
-  testWidgets('MicroPOS shows bottom navigation', (WidgetTester tester) async {
+  testWidgets('CajaRápida shows bottom navigation', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const ProviderScope(child: MicroPOSApp()));
     await tester.pumpAndSettle();
 
@@ -20,6 +22,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify the POS screen title is shown
-    expect(find.text('Punto de Venta'), findsOneWidget);
+    expect(find.text('Ventas'), findsOneWidget);
   });
 }

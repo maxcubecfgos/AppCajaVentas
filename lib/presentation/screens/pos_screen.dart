@@ -26,7 +26,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Punto de Venta'),
+        title: const Text('Ventas'),
         centerTitle: true,
         actions: [
           if (cart.isNotEmpty)
