@@ -250,39 +250,53 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
   }
 
   void _showQrDialog(BuildContext context, DailySummary summary) {
-    final qrData = QrReportHelper.serializeSummary(summary);
-    final qrImage = QrReportHelper.buildQr(qrData);
+    try {
+      final qrData = QrReportHelper.serializeSummary(summary);
+      final qrImage = QrReportHelper.buildQr(qrData);
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Código QR del Cuadre'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            qrImage,
-            const SizedBox(height: 16),
-            Text(
-              DateFormat('dd/MM/yyyy').format(summary.date),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Total: ${CurrencyFormatter.format(summary.totalIncome)}',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+      if (!context.mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Código QR del Cuadre'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(child: qrImage),
+              const SizedBox(height: 16),
+              Text(
+                DateFormat('dd/MM/yyyy').format(summary.date),
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Total: ${CurrencyFormatter.format(summary.totalIncome)}',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cerrar'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
+      );
+    } catch (e) {
+      debugPrint('Error generando QR: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al generar QR: $e'),
+            backgroundColor: Colors.red,
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
   Future<void> _pickDate() async {
@@ -294,9 +308,9 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
       lastDate: now,
     );
     if (picked != null) {
-      setState(
-        () => _selectedDate = DateTime(picked.year, picked.month, picked.day),
-      );
+      final newDate = DateTime(picked.year, picked.month, picked.day);
+      setState(() => _selectedDate = newDate);
+      ref.invalidate(dailySummaryProvider(newDate));
     }
   }
 }

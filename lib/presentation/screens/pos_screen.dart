@@ -7,6 +7,7 @@ import '../../domain/models/transaction.dart';
 import '../../providers/product_providers.dart';
 import '../../providers/transaction_providers.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/daily_summary_providers.dart';
 import '../../providers/theme_provider.dart';
 
 class PosScreen extends ConsumerStatefulWidget {
@@ -222,6 +223,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       );
       cartNotifier.clear();
       ref.invalidate(productListProvider);
+      ref.invalidate(dailySummaryProvider(DateTime.now()));
 
       if (context.mounted) {
         HapticFeedback.heavyImpact();
