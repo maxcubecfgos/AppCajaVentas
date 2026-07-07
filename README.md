@@ -72,7 +72,3 @@ flutter run
 ## Build de release
 
 flutter build apk --release
-
-## Licencia
-
-Privado. Todos los derechos reservados

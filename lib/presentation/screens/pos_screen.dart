@@ -53,7 +53,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               final newMode = current == Brightness.dark
                   ? ThemeMode.light
                   : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state = newMode;
+              ref.read(themeModeProvider.notifier).setMode(newMode);
             },
           ),
         ],

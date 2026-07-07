@@ -51,7 +51,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               final newMode = current == Brightness.dark
                   ? ThemeMode.light
                   : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state = newMode;
+              ref.read(themeModeProvider.notifier).setMode(newMode);
             },
           ),
         ],

@@ -8,9 +8,16 @@ import 'presentation/screens/daily_close_screen.dart';
 import 'presentation/screens/money_counter_screen.dart';
 import 'providers/theme_provider.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MicroPOSApp()));
+  final themeNotifier = ThemeModeNotifier();
+  await themeNotifier.load();
+  runApp(
+    ProviderScope(
+      overrides: [themeModeProvider.overrideWith((ref) => themeNotifier)],
+      child: const MicroPOSApp(),
+    ),
+  );
 }
 
 class MicroPOSApp extends ConsumerWidget {

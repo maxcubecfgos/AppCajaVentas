@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../providers/theme_provider.dart';
+import 'calculator_screen.dart';
 
 class MoneyCounterScreen extends ConsumerStatefulWidget {
   const MoneyCounterScreen({super.key});
@@ -11,7 +12,9 @@ class MoneyCounterScreen extends ConsumerStatefulWidget {
   ConsumerState<MoneyCounterScreen> createState() => _MoneyCounterScreenState();
 }
 
-class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
+class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   final Map<double, TextEditingController> _controllers = {};
   double _total = 0;
 
@@ -33,6 +36,7 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     for (final d in _denominations) {
       _controllers[d.value] = TextEditingController();
     }
@@ -40,6 +44,7 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     for (final c in _controllers.values) {
       c.dispose();
     }
@@ -69,8 +74,15 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contador de Dinero'),
+        title: const Text('Contador'),
         centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.monetization_on), text: 'Dinero'),
+            Tab(icon: Icon(Icons.calculate), text: 'Calculadora'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -89,106 +101,118 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen> {
               final newMode = current == Brightness.dark
                   ? ThemeMode.light
                   : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state = newMode;
+              ref.read(themeModeProvider.notifier).setMode(newMode);
             },
           ),
         ],
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Total display
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-            color: theme.colorScheme.primaryContainer,
-            child: Column(
-              children: [
-                Text(
-                  'Total Contado',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  CurrencyFormatter.format(_total),
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Denomination list
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _denominations.length,
-              itemBuilder: (context, index) {
-                final d = _denominations[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 80,
-                        child: Text(
-                          d.label,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          controller: _controllers[d.value],
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: '0',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                          ),
-                          onChanged: (_) => _calculateTotal(),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 80,
-                        child: Text(
-                          CurrencyFormatter.format(
-                            d.value *
-                                (int.tryParse(
-                                      _controllers[d.value]?.text ?? '0',
-                                    ) ??
-                                    0),
-                          ),
-                          textAlign: TextAlign.right,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+          // Tab 1: Contador de Dinero
+          _buildMoneyCounter(theme),
+          // Tab 2: Calculadora
+          const CalculatorScreen(),
         ],
       ),
+    );
+  }
+
+  Widget _buildMoneyCounter(ThemeData theme) {
+    return Column(
+      children: [
+        // Total display
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          color: theme.colorScheme.primaryContainer,
+          child: Column(
+            children: [
+              Text(
+                'Total Contado',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                CurrencyFormatter.format(_total),
+                style: theme.textTheme.displaySmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Denomination list
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            itemCount: _denominations.length,
+            itemBuilder: (context, index) {
+              final d = _denominations[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        d.label,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: _controllers[d.value],
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          hintText: '0',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
+                          ),
+                        ),
+                        onChanged: (_) => _calculateTotal(),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 80,
+                      child: Text(
+                        CurrencyFormatter.format(
+                          d.value *
+                              (int.tryParse(
+                                    _controllers[d.value]?.text ?? '0',
+                                  ) ??
+                                  0),
+                        ),
+                        textAlign: TextAlign.right,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

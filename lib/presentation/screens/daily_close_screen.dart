@@ -111,7 +111,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
               final newMode = current == Brightness.dark
                   ? ThemeMode.light
                   : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).state = newMode;
+              ref.read(themeModeProvider.notifier).setMode(newMode);
             },
           ),
         ],
