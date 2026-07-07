@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../providers/theme_provider.dart';
+import '../widgets/language_toggle.dart';
 import 'calculator_screen.dart';
 
 class MoneyCounterScreen extends ConsumerStatefulWidget {
@@ -70,32 +72,37 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contador'),
+        title: Text(strings.counterTitle),
         centerTitle: true,
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.monetization_on), text: 'Dinero'),
-            Tab(icon: Icon(Icons.calculate), text: 'Calculadora'),
+          tabs: [
+            Tab(
+              icon: const Icon(Icons.monetization_on),
+              text: strings.moneyTab,
+            ),
+            Tab(icon: const Icon(Icons.calculate), text: strings.calculatorTab),
           ],
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _clearAll,
-            tooltip: 'Limpiar',
+            tooltip: strings.clear,
           ),
+          const LanguageToggle(),
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
                   ? Icons.light_mode
                   : Icons.dark_mode,
             ),
-            tooltip: 'Cambiar tema',
+            tooltip: strings.switchTheme,
             onPressed: () {
               final current = Theme.of(context).brightness;
               final newMode = current == Brightness.dark
@@ -109,19 +116,16 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // Tab 1: Contador de Dinero
-          _buildMoneyCounter(theme),
-          // Tab 2: Calculadora
+          _buildMoneyCounter(theme, strings),
           const CalculatorScreen(),
         ],
       ),
     );
   }
 
-  Widget _buildMoneyCounter(ThemeData theme) {
+  Widget _buildMoneyCounter(ThemeData theme, AppStrings strings) {
     return Column(
       children: [
-        // Total display
         Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -129,7 +133,7 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
           child: Column(
             children: [
               Text(
-                'Total Contado',
+                strings.totalCounted,
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onPrimaryContainer,
                 ),
@@ -145,7 +149,6 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
             ],
           ),
         ),
-        // Denomination list
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),

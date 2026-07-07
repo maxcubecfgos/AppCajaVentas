@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/transaction.dart';
@@ -9,6 +10,7 @@ import '../../providers/transaction_providers.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/daily_summary_providers.dart';
 import '../../providers/theme_provider.dart';
+import '../widgets/language_toggle.dart';
 
 class PosScreen extends ConsumerStatefulWidget {
   const PosScreen({super.key});
@@ -20,6 +22,7 @@ class PosScreen extends ConsumerStatefulWidget {
 class _PosScreenState extends ConsumerState<PosScreen> {
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final productsAsync = ref.watch(productListProvider);
     final cart = ref.watch(cartProvider);
     final cartNotifier = ref.read(cartProvider.notifier);
@@ -27,7 +30,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ventas'),
+        title: Text(strings.salesTitle),
         centerTitle: true,
         actions: [
           if (cart.isNotEmpty)
@@ -41,13 +44,14 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 ),
               ),
             ),
+          const LanguageToggle(),
           IconButton(
             icon: Icon(
               Theme.of(context).brightness == Brightness.dark
                   ? Icons.light_mode
                   : Icons.dark_mode,
             ),
-            tooltip: 'Cambiar tema',
+            tooltip: strings.switchTheme,
             onPressed: () {
               final current = Theme.of(context).brightness;
               final newMode = current == Brightness.dark
@@ -60,30 +64,29 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       ),
       body: Column(
         children: [
-          // Product grid
           Expanded(
             child: productsAsync.when(
               data: (products) => products.isEmpty
-                  ? _emptyState(theme)
-                  : _buildProductGrid(products, cartNotifier, theme),
+                  ? _emptyState(theme, strings)
+                  : _buildProductGrid(products, cartNotifier, theme, strings),
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => Center(child: Text('${strings.error}: $e')),
             ),
           ),
-          // Cart summary bar
           if (cart.isNotEmpty)
             _CartSummaryBar(
               totalItems: cartNotifier.totalItems,
               totalAmount: cartNotifier.totalAmount,
               onCheckout: () => _checkout(context, cartNotifier),
               onViewCart: () => _showCartSheet(context, cartNotifier),
+              strings: strings,
             ),
         ],
       ),
     );
   }
 
-  Widget _emptyState(ThemeData theme) => Center(
+  Widget _emptyState(ThemeData theme, AppStrings strings) => Center(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -93,12 +96,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           color: theme.colorScheme.secondary,
         ),
         const SizedBox(height: 16),
-        Text('No hay productos', style: theme.textTheme.titleMedium),
+        Text(strings.noProducts, style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
-        Text(
-          'Agrega productos desde el catálogo',
-          style: theme.textTheme.bodySmall,
-        ),
+        Text(strings.addFromCatalog, style: theme.textTheme.bodySmall),
       ],
     ),
   );
@@ -107,17 +107,18 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     List<Product> products,
     CartNotifier cartNotifier,
     ThemeData theme,
+    AppStrings strings,
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final crossAxisCount = constraints.maxWidth > 600 ? 4 : 2;
         return GridView.builder(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            childAspectRatio: 0.85,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
+            childAspectRatio: 1.2,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -127,11 +128,25 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               onTap: () {
                 cartNotifier.addProduct(product);
                 HapticFeedback.lightImpact();
-                ScaffoldMessenger.of(context).showSnackBar(
+                final messenger = ScaffoldMessenger.of(context);
+                messenger.clearSnackBars();
+                messenger.showSnackBar(
                   SnackBar(
-                    content: Text('${product.name} +1'),
-                    duration: const Duration(milliseconds: 600),
+                    content: Text(
+                      strings.itemAdded(product.name),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    duration: const Duration(milliseconds: 500),
                     behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.only(
+                      bottom: 80,
+                      left: 16,
+                      right: 16,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 );
               },
@@ -143,13 +158,15 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   }
 
   void _showCartSheet(BuildContext context, CartNotifier cartNotifier) {
+    final strings = AppStrings.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => _CartSheet(cartNotifier: cartNotifier),
+      builder: (ctx) =>
+          _CartSheet(cartNotifier: cartNotifier, strings: strings),
     );
   }
 
@@ -157,35 +174,35 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     BuildContext context,
     CartNotifier cartNotifier,
   ) async {
+    final strings = AppStrings.of(context);
     if (cartNotifier.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Carrito vacío'),
+        SnackBar(
+          content: Text(strings.cartEmpty),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // Capture ScaffoldMessenger before any async gap
     final messenger = ScaffoldMessenger.of(context);
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmar Venta'),
+        title: Text(strings.confirmSale),
         content: Text(
-          'Total: ${CurrencyFormatter.format(cartNotifier.totalAmount)}\n'
-          'Productos: ${cartNotifier.totalItems}',
+          '${strings.totalLabel}: ${CurrencyFormatter.format(cartNotifier.totalAmount)}\n'
+          '${strings.productsLabel}: ${cartNotifier.totalItems}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(strings.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Vender'),
+            child: Text(strings.sell),
           ),
         ],
       ),
@@ -229,8 +246,8 @@ class _PosScreenState extends ConsumerState<PosScreen> {
       if (context.mounted) {
         HapticFeedback.heavyImpact();
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Venta registrada exitosamente'),
+          SnackBar(
+            content: Text(strings.saleSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -238,7 +255,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     } catch (e) {
       debugPrint('Error en checkout: $e');
       if (context.mounted) {
-        final message = _getFriendlyErrorMessage(e);
+        final message = _getFriendlyErrorMessage(e, strings);
         messenger.showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
@@ -246,21 +263,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
     }
   }
 
-  String _getFriendlyErrorMessage(dynamic error) {
+  String _getFriendlyErrorMessage(dynamic error, AppStrings strings) {
     final message = error.toString().toLowerCase();
     if (message.contains('database is locked') ||
         message.contains('database_is_locked')) {
-      return 'La base de datos está ocupada. Intenta nuevamente.';
+      return strings.dbLocked;
     }
     if (message.contains('constraint') || message.contains('unique')) {
-      return 'No se pudo guardar la venta por una restricción de datos.';
+      return strings.constraintError;
     }
-    return 'Ocurrió un error inesperado. Intenta nuevamente.';
+    return strings.errorOccurred;
   }
 }
 
-// ─── Product Card ──────────────────────────────────────────────
-
+// Product Card
 class _ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
@@ -311,19 +327,20 @@ class _ProductCard extends StatelessWidget {
   }
 }
 
-// ─── Cart Summary Bar ──────────────────────────────────────────
-
+// Cart Summary Bar
 class _CartSummaryBar extends StatelessWidget {
   final int totalItems;
   final double totalAmount;
   final VoidCallback onCheckout;
   final VoidCallback onViewCart;
+  final AppStrings strings;
 
   const _CartSummaryBar({
     required this.totalItems,
     required this.totalAmount,
     required this.onCheckout,
     required this.onViewCart,
+    required this.strings,
   });
 
   @override
@@ -353,7 +370,7 @@ class _CartSummaryBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '$totalItems artículo(s)',
+                      strings.items(totalItems),
                       style: theme.textTheme.bodySmall,
                     ),
                     Text(
@@ -369,7 +386,7 @@ class _CartSummaryBar extends StatelessWidget {
             FilledButton.icon(
               onPressed: onCheckout,
               icon: const Icon(Icons.payment),
-              label: const Text('Cobrar'),
+              label: Text(strings.checkout),
             ),
           ],
         ),
@@ -378,12 +395,12 @@ class _CartSummaryBar extends StatelessWidget {
   }
 }
 
-// ─── Cart Sheet (Bottom Sheet) ─────────────────────────────────
-
+// Cart Sheet
 class _CartSheet extends ConsumerWidget {
   final CartNotifier cartNotifier;
+  final AppStrings strings;
 
-  const _CartSheet({required this.cartNotifier});
+  const _CartSheet({required this.cartNotifier, required this.strings});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -399,7 +416,6 @@ class _CartSheet extends ConsumerWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // Handle
             Container(
               width: 40,
               height: 4,
@@ -411,7 +427,7 @@ class _CartSheet extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Carrito de Ventas', style: theme.textTheme.titleMedium),
+            Text(strings.cartTitle, style: theme.textTheme.titleMedium),
             const SizedBox(height: 16),
             if (cart.isEmpty)
               const Expanded(
@@ -437,7 +453,7 @@ class _CartSheet extends ConsumerWidget {
                       ),
                       title: Text(item.product.name),
                       subtitle: Text(
-                        '${CurrencyFormatter.format(item.product.price)} c/u',
+                        '${CurrencyFormatter.format(item.product.price)} ${strings.perUnit}',
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -452,10 +468,9 @@ class _CartSheet extends ConsumerWidget {
                               Icons.remove_circle_outline,
                               color: Colors.red,
                             ),
-                            tooltip: 'Eliminar producto',
-                            onPressed: () {
-                              cartNotifier.removeProduct(item.product);
-                            },
+                            tooltip: strings.removeProduct,
+                            onPressed: () =>
+                                cartNotifier.removeProduct(item.product),
                           ),
                         ],
                       ),

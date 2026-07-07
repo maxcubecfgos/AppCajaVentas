@@ -7,14 +7,21 @@ import 'presentation/screens/catalog_screen.dart';
 import 'presentation/screens/daily_close_screen.dart';
 import 'presentation/screens/money_counter_screen.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
+import 'core/i18n/app_strings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final themeNotifier = ThemeModeNotifier();
   await themeNotifier.load();
+  final localeNotifier = LocaleNotifier();
+  await localeNotifier.load();
   runApp(
     ProviderScope(
-      overrides: [themeModeProvider.overrideWith((ref) => themeNotifier)],
+      overrides: [
+        themeModeProvider.overrideWith((ref) => themeNotifier),
+        localeProvider.overrideWith((ref) => localeNotifier),
+      ],
       child: const MicroPOSApp(),
     ),
   );
@@ -26,6 +33,7 @@ class MicroPOSApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final appLocale = ref.watch(localeProvider);
     return MaterialApp(
       title: 'CajaRápida',
       debugShowCheckedModeBanner: false,
@@ -38,7 +46,7 @@ class MicroPOSApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('es', 'ES'), Locale('en', 'US')],
-      locale: const Locale('es', 'ES'),
+      locale: appLocale.locale,
       home: const HomeScreen(),
     );
   }
@@ -67,6 +75,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
+
     return PopScope(
       canPop: false,
       child: Column(
@@ -77,26 +87,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           NavigationBar(
             selectedIndex: _selectedIndex,
             onDestinationSelected: _onItemTapped,
-            destinations: const [
+            destinations: [
               NavigationDestination(
-                selectedIcon: Icon(Icons.point_of_sale),
-                icon: Icon(Icons.point_of_sale_outlined),
-                label: 'Ventas',
+                selectedIcon: const Icon(Icons.point_of_sale),
+                icon: const Icon(Icons.point_of_sale_outlined),
+                label: strings.navSales,
               ),
               NavigationDestination(
-                selectedIcon: Icon(Icons.inventory_2),
-                icon: Icon(Icons.inventory_2_outlined),
-                label: 'Productos',
+                selectedIcon: const Icon(Icons.inventory_2),
+                icon: const Icon(Icons.inventory_2_outlined),
+                label: strings.navProducts,
               ),
               NavigationDestination(
-                selectedIcon: Icon(Icons.receipt_long),
-                icon: Icon(Icons.receipt_long_outlined),
-                label: 'Cuadre',
+                selectedIcon: const Icon(Icons.receipt_long),
+                icon: const Icon(Icons.receipt_long_outlined),
+                label: strings.navDailyClose,
               ),
               NavigationDestination(
-                selectedIcon: Icon(Icons.account_balance_wallet),
-                icon: Icon(Icons.account_balance_wallet_outlined),
-                label: 'Contador',
+                selectedIcon: const Icon(Icons.account_balance_wallet),
+                icon: const Icon(Icons.account_balance_wallet_outlined),
+                label: strings.navCounter,
               ),
             ],
           ),

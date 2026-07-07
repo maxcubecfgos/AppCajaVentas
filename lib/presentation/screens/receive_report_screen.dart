@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
+import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../domain/models/received_report.dart';
 import '../../providers/database_provider.dart';
@@ -20,10 +21,11 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final strings = AppStrings.of(context);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recibir Cuadre'), centerTitle: true),
+      appBar: AppBar(title: Text(strings.receiveTitle), centerTitle: true),
       body: Column(
         children: [
           Expanded(
@@ -36,7 +38,7 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
                       }
                     },
                   )
-                : _buildResultView(theme),
+                : _buildResultView(theme, strings),
           ),
           if (_errorMessage != null)
             Padding(
@@ -52,7 +54,7 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
     );
   }
 
-  Widget _buildResultView(ThemeData theme) {
+  Widget _buildResultView(ThemeData theme, AppStrings strings) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,10 +65,10 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
             color: theme.colorScheme.primary,
           ),
           const SizedBox(height: 24),
-          Text('Escanea un código QR', style: theme.textTheme.titleLarge),
+          Text(strings.scanQr, style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
-            'Apunta la cámara hacia el código QR del cuadre',
+            strings.scanHint,
             style: theme.textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -105,27 +107,30 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error al procesar el código QR: $e';
+        _errorMessage = '${AppStrings.of(context).errorProcessing}: $e';
         _isScanning = true;
       });
     }
   }
 
   void _showSuccessDialog(BuildContext context, ReceivedReport report) {
+    final strings = AppStrings.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cuadre Recibido'),
+        title: Text(strings.reportReceived),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Fecha: ${report.reportDate}'),
+            Text('${strings.dateLabel}: ${report.reportDate}'),
             const SizedBox(height: 8),
-            Text('Total: ${CurrencyFormatter.format(report.totalIncome)}'),
+            Text(
+              '${strings.totalLabel}: ${CurrencyFormatter.format(report.totalIncome)}',
+            ),
             const SizedBox(height: 8),
-            Text('Transacciones: ${report.transactionCount}'),
+            Text('${strings.transactions}: ${report.transactionCount}'),
           ],
         ),
         actions: [
@@ -134,7 +139,7 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
               Navigator.pop(ctx);
               setState(() => _isScanning = true);
             },
-            child: const Text('Aceptar'),
+            child: Text(strings.accept),
           ),
         ],
       ),
