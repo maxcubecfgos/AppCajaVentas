@@ -9,29 +9,29 @@ class LanguageToggle extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocale = ref.watch(localeProvider);
+    final theme = Theme.of(context);
+
     return PopupMenuButton<AppLocale>(
       tooltip: AppStrings.of(context).language,
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          borderRadius: BorderRadius.circular(16),
+          color: theme.colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(appLocale.flag, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 3),
+            Text(appLocale.flag, style: const TextStyle(fontSize: 16)),
+            const SizedBox(width: 6),
             Text(
               appLocale.label,
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                color: theme.colorScheme.onPrimaryContainer,
               ),
             ),
           ],
@@ -43,23 +43,21 @@ class LanguageToggle extends ConsumerWidget {
           value: locale,
           child: Row(
             children: [
-              Text(locale.flag, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 10),
+              Text(locale.flag, style: const TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
               Text(
                 locale.label,
                 style: TextStyle(
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  color: isActive
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+                  color: isActive ? theme.colorScheme.primary : null,
                 ),
               ),
               const Spacer(),
               if (isActive)
                 Icon(
-                  Icons.check,
-                  size: 18,
-                  color: Theme.of(context).colorScheme.primary,
+                  Icons.check_circle_rounded,
+                  size: 20,
+                  color: theme.colorScheme.primary,
                 ),
             ],
           ),

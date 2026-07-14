@@ -124,6 +124,17 @@ class AppStrings {
   // Theme
   String get switchTheme => _t('Cambiar tema', 'Switch theme');
 
+  // Drawer navigation
+  String get drawerTools => _t('HERRAMIENTAS', 'TOOLS');
+  String get drawerMain => _t('PRINCIPAL', 'MAIN');
+  String get calculatorShort => _t('Calculadora', 'Calculator');
+  String get appVersion => _t('v1.0.0', 'v1.0.0');
+  String get drawerSales => _t('Ventas', 'Sales');
+  String get drawerProducts => _t('Productos', 'Products');
+  String get drawerDailyClose => _t('Cuadre', 'Daily Close');
+  String get drawerCounter => _t('Contador', 'Counter');
+  String get drawerReceiveReport => _t('Recibir Cuadre', 'Receive Report');
+
   // Language
   String get language => _t('Idioma', 'Language');
 

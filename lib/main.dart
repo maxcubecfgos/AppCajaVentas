@@ -8,6 +8,7 @@ import 'presentation/screens/daily_close_screen.dart';
 import 'presentation/screens/money_counter_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/navigation_provider.dart';
 import 'core/i18n/app_strings.dart';
 
 void main() async {
@@ -35,7 +36,7 @@ class MicroPOSApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final appLocale = ref.watch(localeProvider);
     return MaterialApp(
-      title: 'CajaRápida',
+      title: 'Gestion Caja',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -52,65 +53,59 @@ class MicroPOSApp extends ConsumerWidget {
   }
 }
 
-class HomeScreen extends ConsumerStatefulWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  ConsumerState<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _selectedIndex = 0;
-
-  static const List<Widget> _screens = [
-    PosScreen(),
-    CatalogScreen(),
-    DailyCloseScreen(),
-    MoneyCounterScreen(),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final strings = AppStrings.of(context);
+    final selectedIndex = ref.watch(selectedScreenIndexProvider);
+
+    final screens = [
+      const PosScreen(),
+      const CatalogScreen(),
+      const DailyCloseScreen(),
+      const MoneyCounterScreen(),
+    ];
 
     return PopScope(
       canPop: false,
-      child: Column(
-        children: [
-          Expanded(
-            child: IndexedStack(index: _selectedIndex, children: _screens),
-          ),
-          NavigationBar(
-            selectedIndex: _selectedIndex,
-            onDestinationSelected: _onItemTapped,
-            destinations: [
-              NavigationDestination(
-                selectedIcon: const Icon(Icons.point_of_sale),
-                icon: const Icon(Icons.point_of_sale_outlined),
-                label: strings.navSales,
-              ),
-              NavigationDestination(
-                selectedIcon: const Icon(Icons.inventory_2),
-                icon: const Icon(Icons.inventory_2_outlined),
-                label: strings.navProducts,
-              ),
-              NavigationDestination(
-                selectedIcon: const Icon(Icons.receipt_long),
-                icon: const Icon(Icons.receipt_long_outlined),
-                label: strings.navDailyClose,
-              ),
-              NavigationDestination(
-                selectedIcon: const Icon(Icons.account_balance_wallet),
-                icon: const Icon(Icons.account_balance_wallet_outlined),
-                label: strings.navCounter,
-              ),
-            ],
-          ),
-        ],
+      child: Scaffold(
+        body: Column(
+          children: [
+            Expanded(
+              child: IndexedStack(index: selectedIndex, children: screens),
+            ),
+            NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) {
+                ref.read(selectedScreenIndexProvider.notifier).state = index;
+              },
+              destinations: [
+                NavigationDestination(
+                  selectedIcon: const Icon(Icons.point_of_sale),
+                  icon: const Icon(Icons.point_of_sale_outlined),
+                  label: strings.navSales,
+                ),
+                NavigationDestination(
+                  selectedIcon: const Icon(Icons.inventory_2),
+                  icon: const Icon(Icons.inventory_2_outlined),
+                  label: strings.navProducts,
+                ),
+                NavigationDestination(
+                  selectedIcon: const Icon(Icons.receipt_long),
+                  icon: const Icon(Icons.receipt_long_outlined),
+                  label: strings.navDailyClose,
+                ),
+                NavigationDestination(
+                  selectedIcon: const Icon(Icons.account_balance_wallet),
+                  icon: const Icon(Icons.account_balance_wallet_outlined),
+                  label: strings.navCounter,
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

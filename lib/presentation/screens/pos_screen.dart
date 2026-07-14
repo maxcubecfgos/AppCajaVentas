@@ -9,8 +9,7 @@ import '../../providers/product_providers.dart';
 import '../../providers/transaction_providers.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/daily_summary_providers.dart';
-import '../../providers/theme_provider.dart';
-import '../widgets/language_toggle.dart';
+import '../widgets/app_drawer.dart';
 
 class PosScreen extends ConsumerStatefulWidget {
   const PosScreen({super.key});
@@ -44,24 +43,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
                 ),
               ),
             ),
-          const LanguageToggle(),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            tooltip: strings.switchTheme,
-            onPressed: () {
-              final current = Theme.of(context).brightness;
-              final newMode = current == Brightness.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).setMode(newMode);
-            },
-          ),
         ],
       ),
+      drawer: const AppDrawer(),
       body: Column(
         children: [
           Expanded(

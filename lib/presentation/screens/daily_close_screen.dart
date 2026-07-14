@@ -7,8 +7,7 @@ import '../../core/utils/daily_report_helper.dart';
 import '../../core/utils/qr_report_helper.dart';
 import '../../domain/models/daily_summary.dart';
 import '../../providers/daily_summary_providers.dart';
-import '../../providers/theme_provider.dart';
-import '../widgets/language_toggle.dart';
+import '../widgets/app_drawer.dart';
 import 'receive_report_screen.dart';
 
 class DailyCloseScreen extends ConsumerStatefulWidget {
@@ -27,16 +26,13 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: Text(strings.dailyCloseTitle),
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today),
-            onPressed: _pickDate,
-          ),
-          IconButton(
-            icon: const Icon(Icons.qr_code_scanner),
+            icon: const Icon(Icons.qr_code_scanner_rounded),
             tooltip: strings.receiveReport,
             onPressed: () {
               Navigator.push(
@@ -48,7 +44,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.qr_code),
+            icon: const Icon(Icons.qr_code_rounded),
             tooltip: strings.generateQr,
             onPressed: () async {
               final selectedDate = ref.read(selectedDateProvider);
@@ -71,7 +67,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
+            icon: const Icon(Icons.picture_as_pdf_rounded),
             tooltip: strings.exportPdf,
             onPressed: () async {
               final selectedDate = ref.read(selectedDateProvider);
@@ -102,21 +98,9 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
               }
             },
           ),
-          const LanguageToggle(),
           IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            tooltip: strings.switchTheme,
-            onPressed: () {
-              final current = Theme.of(context).brightness;
-              final newMode = current == Brightness.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).setMode(newMode);
-            },
+            icon: const Icon(Icons.calendar_today),
+            onPressed: _pickDate,
           ),
         ],
       ),

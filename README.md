@@ -1,4 +1,4 @@
-# CajaRápida
+# Gestion Caja
 
 Punto de Venta offline-first para pequeños negocios. Registra ventas, administra productos, realiza cuadres diarios y cuenta dinero en efectivo — todo sin conexión a internet.
 
@@ -9,7 +9,7 @@ Punto de Venta offline-first para pequeños negocios. Registra ventas, administr
 - **Cuadre diario**: Visualiza ingresos, transacciones y desglose por producto del día. Genera QR y exporta a PDF.
 - **Recibir cuadres**: Escanea códigos QR de cuadres diarios para importar reportes.
 - **Contador de dinero**: Suma billetes y monedas con denominaciones configurables.
-- **Tema claro/oscuro**: Interfaz adaptable con paleta profesional azul noche + terracota.
+- **Tema claro/oscuro**: Interfaz adaptable con paleta profesional.
 - **Respaldo y restauración**: Exporta e importa la base de datos completa.
 - **Offline-first**: Funciona sin internet. Los datos se guardan localmente con SQLite.
 
@@ -18,7 +18,7 @@ Punto de Venta offline-first para pequeños negocios. Registra ventas, administr
 - **UI**: Flutter + Material 3
 - **Estado**: Riverpod
 - **Persistencia**: SQLite (sqflite)
-- **Internacionalización**: flutter_localizations (español por defecto)
+- **Internacionalización**: flutter_localizations (español/inglés)
 
 ## Estructura del proyecto
 
@@ -27,6 +27,8 @@ lib/
 ├── core/
 │   ├── database/
 │   │   └── app_database.dart
+│   ├── i18n/
+│   │   └── app_strings.dart
 │   └── utils/
 │       ├── currency_formatter.dart
 │       ├── daily_report_helper.dart
@@ -44,6 +46,9 @@ lib/
 ├── presentation/
 │   ├── theme/
 │   │   └── app_theme.dart
+│   ├── widgets/
+│   │   ├── app_drawer.dart
+│   │   └── language_toggle.dart
 │   └── screens/
 │       ├── pos_screen.dart
 │       ├── catalog_screen.dart
@@ -52,6 +57,7 @@ lib/
 │       └── receive_report_screen.dart
 └── providers/
     ├── theme_provider.dart
+    ├── locale_provider.dart
     ├── database_provider.dart
     ├── product_providers.dart
     ├── transaction_providers.dart

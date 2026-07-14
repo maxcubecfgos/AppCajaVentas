@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
-import '../../providers/theme_provider.dart';
-import '../widgets/language_toggle.dart';
+import '../widgets/app_drawer.dart';
 import 'calculator_screen.dart';
 
 class MoneyCounterScreen extends ConsumerStatefulWidget {
@@ -76,6 +75,7 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(
         title: Text(strings.counterTitle),
         centerTitle: true,
@@ -94,22 +94,6 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
             icon: const Icon(Icons.refresh),
             onPressed: _clearAll,
             tooltip: strings.clear,
-          ),
-          const LanguageToggle(),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            tooltip: strings.switchTheme,
-            onPressed: () {
-              final current = Theme.of(context).brightness;
-              final newMode = current == Brightness.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).setMode(newMode);
-            },
           ),
         ],
       ),

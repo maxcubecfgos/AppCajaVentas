@@ -6,8 +6,7 @@ import '../../core/utils/backup_helper.dart';
 import '../../domain/models/product.dart';
 import '../../providers/product_providers.dart';
 import '../../providers/database_provider.dart';
-import '../../providers/theme_provider.dart';
-import '../widgets/language_toggle.dart';
+import '../widgets/app_drawer.dart';
 
 class CatalogScreen extends ConsumerStatefulWidget {
   const CatalogScreen({super.key});
@@ -42,24 +41,9 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             tooltip: strings.backup,
             onPressed: () => _showBackupOptions(context),
           ),
-          const LanguageToggle(),
-          IconButton(
-            icon: Icon(
-              Theme.of(context).brightness == Brightness.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            tooltip: strings.switchTheme,
-            onPressed: () {
-              final current = Theme.of(context).brightness;
-              final newMode = current == Brightness.dark
-                  ? ThemeMode.light
-                  : ThemeMode.dark;
-              ref.read(themeModeProvider.notifier).setMode(newMode);
-            },
-          ),
         ],
       ),
+      drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showProductForm(context),
         child: const Icon(Icons.add),

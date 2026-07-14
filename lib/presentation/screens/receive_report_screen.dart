@@ -6,6 +6,7 @@ import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../domain/models/received_report.dart';
 import '../../providers/database_provider.dart';
+import '../widgets/app_drawer.dart';
 
 class ReceiveReportScreen extends ConsumerStatefulWidget {
   const ReceiveReportScreen({super.key});
@@ -25,6 +26,7 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      drawer: const AppDrawer(),
       appBar: AppBar(title: Text(strings.receiveTitle), centerTitle: true),
       body: Column(
         children: [
