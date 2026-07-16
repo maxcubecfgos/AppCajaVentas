@@ -4,7 +4,6 @@ import '../../core/i18n/app_strings.dart';
 import '../../providers/navigation_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../screens/receive_report_screen.dart';
-import '../screens/calculator_screen.dart';
 import 'language_toggle.dart';
 
 class AppDrawer extends ConsumerWidget {
@@ -109,13 +108,9 @@ class AppDrawer extends ConsumerWidget {
                     index: null,
                     selectedIndex: selectedIndex,
                     onTap: () {
+                      ref.read(selectedScreenIndexProvider.notifier).state = 3;
+                      ref.read(moneyCounterTabIndexProvider.notifier).state = 1;
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CalculatorScreen(),
-                        ),
-                      );
                     },
                   ),
                 ],

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../providers/navigation_provider.dart';
 import '../widgets/app_drawer.dart';
 import 'calculator_screen.dart';
 
@@ -38,13 +39,21 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    _tabController.index = ref.read(moneyCounterTabIndexProvider);
     for (final d in _denominations) {
       _controllers[d.value] = TextEditingController();
     }
   }
 
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    ref.read(moneyCounterTabIndexProvider.notifier).state = _tabController.index;
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     for (final c in _controllers.values) {
       c.dispose();
@@ -73,6 +82,12 @@ class _MoneyCounterScreenState extends ConsumerState<MoneyCounterScreen>
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final theme = Theme.of(context);
+
+    ref.listen<int>(moneyCounterTabIndexProvider, (_, next) {
+      if (next != _tabController.index) {
+        _tabController.index = next;
+      }
+    });
 
     return Scaffold(
       drawer: const AppDrawer(),
