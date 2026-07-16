@@ -47,7 +47,7 @@ class _ReceiveReportScreenState extends ConsumerState<ReceiveReportScreen> {
               padding: const EdgeInsets.all(16),
               child: Text(
                 _errorMessage!,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: theme.colorScheme.error),
                 textAlign: TextAlign.center,
               ),
             ),

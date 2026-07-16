@@ -1,0 +1,14 @@
+CajaRápida es un punto de venta offline-first para pequeños
+negocios, desarrollado en Flutter (Android nativo).
+
+Funciones principales:
+  - Ventas con catálogo de productos y carrito.
+  - Cuadre / cierre diario exportable a PDF y vía código QR.
+  - Recepción de cuadres por QR desde otro dispositivo.
+  - Contador de dinero y calculadora integradas.
+  - Respaldo y restauración de la base de datos local (.db).
+  - Modo claro / oscuro y soporte bilingüe (ES / EN).
+  - Funciona sin conexión a internet.
+
+Tecnologías: Flutter, Riverpod, sqflite, mobile_scanner,
+qr_flutter, pdf, share_plus, shared_preferences.

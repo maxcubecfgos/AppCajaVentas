@@ -6,11 +6,21 @@ import '../../providers/theme_provider.dart';
 import '../screens/receive_report_screen.dart';
 import 'language_toggle.dart';
 
-class AppDrawer extends ConsumerWidget {
+class AppDrawer extends ConsumerStatefulWidget {
   const AppDrawer({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends ConsumerState<AppDrawer> {
+  // Llave del PopupMenuButton de idioma para poder abrirlo
+  // programáticamente desde el `onTap` de la fila completa.
+  final GlobalKey<PopupMenuButtonState<AppLocale>> _languageMenuKey =
+      GlobalKey<PopupMenuButtonState<AppLocale>>();
+
+  @override
+  Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final theme = Theme.of(context);
     final selectedIndex = ref.watch(selectedScreenIndexProvider);
@@ -50,43 +60,86 @@ class AppDrawer extends ConsumerWidget {
               ),
             ),
             const Divider(),
+            // ── Settings (arriba para que sean visibles) ──
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _SectionHeader(text: strings.drawerSettings),
+                  _SettingsTile(
+                    icon: Icons.language_rounded,
+                    label: strings.language,
+                    // Cualquier punto de la fila abre el menú.
+                    onTap: () =>
+                        _languageMenuKey.currentState?.showButtonMenu(),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        LanguageToggle(menuKey: _languageMenuKey),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.expand_more_rounded,
+                          size: 18,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                  _SettingsTile(
+                    icon: theme.brightness == Brightness.dark
+                        ? Icons.light_mode_rounded
+                        : Icons.dark_mode_rounded,
+                    label: strings.switchTheme,
+                    onTap: () {
+                      final current = theme.brightness;
+                      final newMode = current == Brightness.dark
+                          ? ThemeMode.light
+                          : ThemeMode.dark;
+                      ref.read(themeModeProvider.notifier).setMode(newMode);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                ],
+              ),
+            ),
+            const Divider(),
             // ── Navigation ────────────────────────────────
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 children: [
+                  _SectionHeader(text: strings.drawerMain),
                   _NavItem(
                     icon: Icons.point_of_sale_rounded,
                     label: strings.drawerSales,
                     index: 0,
                     selectedIndex: selectedIndex,
-                    onTap: () => _navigateTo(context, ref, 0),
+                    onTap: () => _navigateTo(context, 0),
                   ),
                   _NavItem(
                     icon: Icons.inventory_2_rounded,
                     label: strings.drawerProducts,
                     index: 1,
                     selectedIndex: selectedIndex,
-                    onTap: () => _navigateTo(context, ref, 1),
+                    onTap: () => _navigateTo(context, 1),
                   ),
                   _NavItem(
                     icon: Icons.receipt_long_rounded,
                     label: strings.drawerDailyClose,
                     index: 2,
                     selectedIndex: selectedIndex,
-                    onTap: () => _navigateTo(context, ref, 2),
+                    onTap: () => _navigateTo(context, 2),
                   ),
                   _NavItem(
                     icon: Icons.account_balance_wallet_rounded,
                     label: strings.drawerCounter,
                     index: 3,
                     selectedIndex: selectedIndex,
-                    onTap: () => _navigateTo(context, ref, 3),
+                    onTap: () => _navigateTo(context, 3),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: Divider(),
-                  ),
+                  _SectionHeader(text: strings.drawerTools),
                   _NavItem(
                     icon: Icons.qr_code_scanner_rounded,
                     label: strings.drawerReceiveReport,
@@ -116,59 +169,38 @@ class AppDrawer extends ConsumerWidget {
                 ],
               ),
             ),
-            // ── Settings ──────────────────────────────────
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(
-                    color: theme.colorScheme.outlineVariant.withValues(
-                      alpha: 0.3,
-                    ),
-                  ),
-                ),
-              ),
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  12,
-                  16,
-                  MediaQuery.of(context).padding.bottom + 12,
-                ),
-                child: Column(
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.language_rounded,
-                      label: strings.language,
-                      trailing: const LanguageToggle(),
-                    ),
-                    const SizedBox(height: 4),
-                    _SettingsTile(
-                      icon: theme.brightness == Brightness.dark
-                          ? Icons.light_mode_rounded
-                          : Icons.dark_mode_rounded,
-                      label: strings.switchTheme,
-                      onTap: () {
-                        final current = theme.brightness;
-                        final newMode = current == Brightness.dark
-                            ? ThemeMode.light
-                            : ThemeMode.dark;
-                        ref.read(themeModeProvider.notifier).setMode(newMode);
-                        Navigator.pop(context);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  void _navigateTo(BuildContext context, WidgetRef ref, int index) {
+  void _navigateTo(BuildContext context, int index) {
     ref.read(selectedScreenIndexProvider.notifier).state = index;
     Navigator.pop(context);
+  }
+}
+
+// ─── Section Header ─────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  final String text;
+
+  const _SectionHeader({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 16, 6),
+      child: Text(
+        text,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
   }
 }
 

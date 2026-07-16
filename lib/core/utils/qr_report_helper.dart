@@ -46,7 +46,7 @@ class QrReportHelper {
             child: Text(
               'Error al generar QR: ${error.toString()}',
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           );
         },

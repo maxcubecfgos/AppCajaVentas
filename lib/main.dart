@@ -71,38 +71,32 @@ class HomeScreen extends ConsumerWidget {
     return PopScope(
       canPop: false,
       child: Scaffold(
-        body: Column(
-          children: [
-            Expanded(
-              child: IndexedStack(index: selectedIndex, children: screens),
+        body: IndexedStack(index: selectedIndex, children: screens),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: selectedIndex,
+          onDestinationSelected: (index) {
+            ref.read(selectedScreenIndexProvider.notifier).state = index;
+          },
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.point_of_sale_outlined),
+              selectedIcon: const Icon(Icons.point_of_sale),
+              label: strings.navSales,
             ),
-            NavigationBar(
-              selectedIndex: selectedIndex,
-              onDestinationSelected: (index) {
-                ref.read(selectedScreenIndexProvider.notifier).state = index;
-              },
-              destinations: [
-                NavigationDestination(
-                  selectedIcon: const Icon(Icons.point_of_sale),
-                  icon: const Icon(Icons.point_of_sale_outlined),
-                  label: strings.navSales,
-                ),
-                NavigationDestination(
-                  selectedIcon: const Icon(Icons.inventory_2),
-                  icon: const Icon(Icons.inventory_2_outlined),
-                  label: strings.navProducts,
-                ),
-                NavigationDestination(
-                  selectedIcon: const Icon(Icons.receipt_long),
-                  icon: const Icon(Icons.receipt_long_outlined),
-                  label: strings.navDailyClose,
-                ),
-                NavigationDestination(
-                  selectedIcon: const Icon(Icons.account_balance_wallet),
-                  icon: const Icon(Icons.account_balance_wallet_outlined),
-                  label: strings.navCounter,
-                ),
-              ],
+            NavigationDestination(
+              icon: const Icon(Icons.inventory_2_outlined),
+              selectedIcon: const Icon(Icons.inventory_2),
+              label: strings.navProducts,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.receipt_long_outlined),
+              selectedIcon: const Icon(Icons.receipt_long),
+              label: strings.navDailyClose,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.account_balance_wallet_outlined),
+              selectedIcon: const Icon(Icons.account_balance_wallet),
+              label: strings.navCounter,
             ),
           ],
         ),

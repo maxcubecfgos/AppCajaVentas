@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/utils/snack_bar_helper.dart';
 import '../../domain/models/product.dart';
 import '../../domain/models/transaction.dart';
 import '../../providers/product_providers.dart';
@@ -19,6 +20,11 @@ class PosScreen extends ConsumerStatefulWidget {
 }
 
 class _PosScreenState extends ConsumerState<PosScreen> {
+  /// Margen extra para que los SnackBars no tapen el botón "Cobrar"
+  /// del `_CartSummaryBar`. Coincide con la altura aproximada del bar
+  /// (padding vertical + Row con FilledButton.icon).
+  static const double _cartBarClearance = 90;
+
   @override
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
@@ -34,11 +40,12 @@ class _PosScreenState extends ConsumerState<PosScreen> {
         actions: [
           if (cart.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(right: 4),
+              padding: const EdgeInsets.only(right: 12),
               child: Badge(
                 label: Text('${cartNotifier.totalItems}'),
                 child: IconButton(
                   icon: const Icon(Icons.shopping_cart),
+                  tooltip: strings.cartTitle,
                   onPressed: () => _showCartSheet(context, cartNotifier),
                 ),
               ),
@@ -112,26 +119,10 @@ class _PosScreenState extends ConsumerState<PosScreen> {
               onTap: () {
                 cartNotifier.addProduct(product);
                 HapticFeedback.lightImpact();
-                final messenger = ScaffoldMessenger.of(context);
-                messenger.clearSnackBars();
-                messenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      strings.itemAdded(product.name),
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    duration: const Duration(milliseconds: 500),
-                    behavior: SnackBarBehavior.floating,
-                    margin: const EdgeInsets.only(
-                      bottom: 80,
-                      left: 16,
-                      right: 16,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                  ),
+                SnackBarHelper.showBrief(
+                  context,
+                  strings.itemAdded(product.name),
+                  extraMargin: _cartBarClearance,
                 );
               },
             );
@@ -160,16 +151,9 @@ class _PosScreenState extends ConsumerState<PosScreen> {
   ) async {
     final strings = AppStrings.of(context);
     if (cartNotifier.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(strings.cartEmpty),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      SnackBarHelper.showWarning(context, strings.cartEmpty);
       return;
     }
-
-    final messenger = ScaffoldMessenger.of(context);
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -190,9 +174,7 @@ class _PosScreenState extends ConsumerState<PosScreen> {
           ),
         ],
       ),
-    );
-
-    if (confirm != true) return;
+    );    if (confirm != true) return;
 
     try {
       final datasource = ref.read(posDataSourceProvider);
@@ -229,19 +211,20 @@ class _PosScreenState extends ConsumerState<PosScreen> {
 
       if (context.mounted) {
         HapticFeedback.heavyImpact();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(strings.saleSuccess),
-            backgroundColor: Colors.green,
-          ),
+        SnackBarHelper.show(
+          context,
+          strings.saleSuccess,
+          extraMargin: _cartBarClearance,
         );
       }
     } catch (e) {
       debugPrint('Error en checkout: $e');
       if (context.mounted) {
         final message = _getFriendlyErrorMessage(e, strings);
-        messenger.showSnackBar(
-          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        SnackBarHelper.showError(
+          context,
+          message,
+          extraMargin: _cartBarClearance,
         );
       }
     }
@@ -448,9 +431,9 @@ class _CartSheet extends ConsumerWidget {
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.remove_circle_outline,
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.error,
                             ),
                             tooltip: strings.removeProduct,
                             onPressed: () =>

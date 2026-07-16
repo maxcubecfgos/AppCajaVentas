@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/backup_helper.dart';
+import '../../core/utils/snack_bar_helper.dart';
 import '../../domain/models/product.dart';
 import '../../providers/product_providers.dart';
 import '../../providers/database_provider.dart';
@@ -155,7 +156,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   onPressed: () => _showProductForm(context, product: product),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: theme.colorScheme.error,
+                  ),
                   onPressed: () => _confirmDelete(context, product),
                 ),
               ],
@@ -242,12 +246,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               final price = double.tryParse(priceText);
               if (price == null || price < 0) {
                 if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
-                      content: Text(strings.invalidPrice),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  SnackBarHelper.showError(ctx, strings.invalidPrice);
                 }
                 return;
               }
@@ -258,12 +257,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               if (existing != null &&
                   (isEditing ? existing.id != editingProduct!.id : true)) {
                 if (ctx.mounted) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(
-                      content: Text(strings.duplicateName(name)),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
+                  SnackBarHelper.showWarning(ctx, strings.duplicateName(name));
                 }
                 return;
               }
@@ -284,11 +278,9 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 debugPrint('Error al guardar producto: $e');
                 if (ctx.mounted) {
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_getFriendlySaveError(e, strings)),
-                      backgroundColor: Colors.red,
-                    ),
+                  SnackBarHelper.showError(
+                    context,
+                    _getFriendlySaveError(e, strings),
                   );
                 }
               }
@@ -327,7 +319,10 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.upload_file),
+              leading: Icon(
+                Icons.upload_file,
+                color: Theme.of(ctx).colorScheme.primary,
+              ),
               title: Text(strings.exportBackup),
               subtitle: Text(strings.exportSub),
               onTap: () async {
@@ -336,18 +331,19 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                   await BackupHelper.exportDatabase();
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${strings.error}: $e'),
-                        backgroundColor: Colors.red,
-                      ),
+                    SnackBarHelper.showError(
+                      context,
+                      '${strings.error}: $e',
                     );
                   }
                 }
               },
             ),
             ListTile(
-              leading: const Icon(Icons.download),
+              leading: Icon(
+                Icons.download,
+                color: Theme.of(ctx).colorScheme.primary,
+              ),
               title: Text(strings.restoreBackup),
               subtitle: Text(strings.restoreSub),
               onTap: () async {
@@ -355,20 +351,13 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                 try {
                   await BackupHelper.restoreDatabase();
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(strings.restoreSuccess),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    SnackBarHelper.show(context, strings.restoreSuccess);
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${strings.error}: $e'),
-                        backgroundColor: Colors.red,
-                      ),
+                    SnackBarHelper.showError(
+                      context,
+                      '${strings.error}: $e',
                     );
                   }
                 }
@@ -393,7 +382,9 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             child: Text(strings.cancel),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(strings.delete),
           ),
@@ -406,33 +397,29 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       await datasource.deleteProduct(product.id!);
       ref.invalidate(productListProvider);
       if (context.mounted) {
-        final messenger = ScaffoldMessenger.of(context);
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(strings.deleted(product.name)),
-            action: SnackBarAction(
-              label: strings.undo,
-              textColor: const Color(0xFF4CAF50),
-              onPressed: () async {
-                final restoredProduct = Product(
-                  name: product.name,
-                  price: product.price,
+        SnackBarHelper.show(
+          context,
+          strings.deleted(product.name),
+          action: SnackBarAction(
+            label: strings.undo,
+            textColor: Theme.of(context).colorScheme.primary,
+            onPressed: () async {
+              final restoredProduct = Product(
+                name: product.name,
+                price: product.price,
+              );
+              await datasource.insertProduct(restoredProduct);
+              ref.invalidate(productListProvider);
+              if (context.mounted) {
+                SnackBarHelper.show(
+                  context,
+                  strings.restored(product.name),
+                  duration: const Duration(seconds: 2),
                 );
-                await datasource.insertProduct(restoredProduct);
-                ref.invalidate(productListProvider);
-                if (context.mounted) {
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text(strings.restored(product.name)),
-                      backgroundColor: Colors.green,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-            ),
-            duration: const Duration(seconds: 4),
+              }
+            },
           ),
+          duration: const Duration(seconds: 4),
         );
       }
     }

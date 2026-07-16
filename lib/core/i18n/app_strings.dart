@@ -127,6 +127,7 @@ class AppStrings {
   // Drawer navigation
   String get drawerTools => _t('HERRAMIENTAS', 'TOOLS');
   String get drawerMain => _t('PRINCIPAL', 'MAIN');
+  String get drawerSettings => _t('AJUSTES', 'SETTINGS');
   String get calculatorShort => _t('Calculadora', 'Calculator');
   String get appVersion => _t('v1.0.0', 'v1.0.0');
   String get drawerSales => _t('Ventas', 'Sales');

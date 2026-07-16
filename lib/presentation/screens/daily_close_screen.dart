@@ -5,6 +5,7 @@ import '../../core/i18n/app_strings.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/daily_report_helper.dart';
 import '../../core/utils/qr_report_helper.dart';
+import '../../core/utils/snack_bar_helper.dart';
 import '../../domain/models/daily_summary.dart';
 import '../../providers/daily_summary_providers.dart';
 import '../widgets/app_drawer.dart';
@@ -52,12 +53,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
               final summary = summaryAsync.value;
               if (summary == null) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(strings.noDataQr),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
+                  SnackBarHelper.showWarning(context, strings.noDataQr);
                 }
                 return;
               }
@@ -75,12 +71,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
               final summary = summaryAsync.value;
               if (summary == null) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(strings.noDataQr),
-                      backgroundColor: Colors.orange,
-                    ),
-                  );
+                  SnackBarHelper.showWarning(context, strings.noDataQr);
                 }
                 return;
               }
@@ -88,12 +79,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                 await DailyReportHelper.shareDailyReport(summary);
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${strings.error}: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  SnackBarHelper.showError(context, '${strings.error}: $e');
                 }
               }
             },
@@ -151,7 +137,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                         title: strings.totalIncome,
                         value: CurrencyFormatter.format(summary.totalIncome),
                         icon: Icons.attach_money,
-                        color: Colors.green,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -160,7 +146,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
                         title: strings.transactions,
                         value: '${summary.transactionCount}',
                         icon: Icons.receipt_long,
-                        color: Colors.blue,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                   ],
@@ -263,12 +249,7 @@ class _DailyCloseScreenState extends ConsumerState<DailyCloseScreen> {
     } catch (e) {
       debugPrint('Error generando QR: $e');
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${strings.errorQr}: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackBarHelper.showError(context, '${strings.errorQr}: $e');
       }
     }
   }

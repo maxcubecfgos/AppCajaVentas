@@ -4,7 +4,12 @@ import '../../core/i18n/app_strings.dart';
 import '../../providers/locale_provider.dart';
 
 class LanguageToggle extends ConsumerWidget {
-  const LanguageToggle({super.key});
+  /// Llave que permite a un widget padre abrir el menú mediante
+  /// `currentState?.showButtonMenu()`. Útil cuando el toggle se aloja
+  /// dentro de una fila tappable (ej: _SettingsTile del drawer).
+  final GlobalKey<PopupMenuButtonState<AppLocale>>? menuKey;
+
+  const LanguageToggle({super.key, this.menuKey});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -12,6 +17,7 @@ class LanguageToggle extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return PopupMenuButton<AppLocale>(
+      key: menuKey,
       tooltip: AppStrings.of(context).language,
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
