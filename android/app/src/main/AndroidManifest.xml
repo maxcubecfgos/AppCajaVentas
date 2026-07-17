@@ -30,6 +30,16 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- ML Kit barcode: usa la versión "unbundled" para que el modelo
+             se descargue dinámicamente desde Google Play Services en lugar
+             de incluirse en el APK (ahorra ~3 MB).
+             ⚠ Requiere Google Play Services + conexión a internet en el
+             primer escaneo. Si necesitas escanear offline en dispositivos
+             sin GMS (Huawei, etc.) elimina este meta-data. -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

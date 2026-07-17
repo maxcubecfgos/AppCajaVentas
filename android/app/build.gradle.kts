@@ -9,7 +9,18 @@ plugins {
 android {
     packaging {
         resources {
-            excludes += "META-INF/*"
+            excludes += setOf(
+                "META-INF/*",
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module",
+            )
         }
     }
     namespace = "co.puntoya.cajarapida"
@@ -30,6 +41,19 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+    }
+
+    // Splits por ABI: genera APKs más pequeños por arquitectura cuando
+    // se construye con `flutter build apk --release`. `reset()` limpia
+    // el abiFilters por defecto y `include(...)` lo reemplaza: sólo
+    // arm64-v8a + armeabi-v7a quedan en el APK (excluye x86 ~6-8 MB).
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("armeabi-v7a", "arm64-v8a")
+            isUniversalApk = false
+        }
     }
 
     // Lee credenciales del keystore desde android/key.properties (gitignored).
@@ -67,6 +91,20 @@ android {
 
     buildTypes {
         release {
+            // Activar R8 (minify) + resource shrinking reduce el APK en
+            // 30-60% eliminando código Dart/Kotlin y recursos no usados.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Solo cruncha PNGs de android/app/src/main/res/ (no aplica a
+            // assets de Flutter empaquetados). Para reducir icon/budget.png
+            // convertir a WebP en su lugar.
+            isCrunchPngs = true
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
+
             signingConfig = if (signingConfigs.findByName("release") != null) {
                 signingConfigs.getByName("release")
             } else {
