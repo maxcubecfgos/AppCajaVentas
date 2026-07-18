@@ -6,11 +6,11 @@ import '../../domain/models/daily_summary.dart';
 import '../../domain/models/received_report.dart';
 
 class PosDatabaseDatasource {
-  final AppDatabase _appDatabase;
+  final AppDatabase? _appDatabase;
 
   PosDatabaseDatasource(this._appDatabase);
 
-  Future<Database> get database => _appDatabase.database;
+  Future<Database> get database => _appDatabase!.database;
 
   // ─── Products ───────────────────────────────────────────────────
 
