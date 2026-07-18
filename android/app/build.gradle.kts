@@ -43,19 +43,6 @@ android {
         versionName = flutter.versionName
     }
 
-    // Splits por ABI: genera APKs más pequeños por arquitectura cuando
-    // se construye con `flutter build apk --release`. `reset()` limpia
-    // el abiFilters por defecto y `include(...)` lo reemplaza: sólo
-    // arm64-v8a + armeabi-v7a quedan en el APK (excluye x86 ~6-8 MB).
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a")
-            isUniversalApk = false
-        }
-    }
-
     // Lee credenciales del keystore desde android/key.properties (gitignored).
     // Si el archivo no existe o está incompleto, se usa el signing de debug
     // para que `flutter run --release` siga funcionando durante desarrollo.
